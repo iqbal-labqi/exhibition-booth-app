@@ -52,9 +52,33 @@ class AuthController extends Notifier<bool> {
     state = false;
   }
 
+  // --- NEW REGISTER METHOD ---
+  Future<void> register(String email, String password, String name, String role) async {
+    state = true; // Set loading to true
+    try {
+      final repo = ref.read(authRepositoryProvider);
+
+      // Calls the repository to create the user in Auth AND Firestore
+      final newUser = await repo.signUpWithEmail(
+          email: email,
+          password: password,
+          name: name,
+          role: role
+      );
+
+      // Update the global user state
+      ref.read(currentUserProvider.notifier).setUser(newUser);
+
+    } catch (e) {
+      state = false;
+      throw Exception('Registration failed: $e');
+    }
+    state = false;
+  }
+
+  // --- EXISTING LOGOUT METHOD ---
   Future<void> logout() async {
     await ref.read(authRepositoryProvider).signOut();
-    // Clear the user
     ref.read(currentUserProvider.notifier).setUser(null);
   }
 }

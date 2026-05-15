@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "717149806136",
+    "project_id": "exhibition-manager-fcc60",
+    "storage_bucket": "exhibition-manager-fcc60.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:717149806136:android:c33b633c5591542c6190cd",
+        "android_client_info": {
+          "package_name": "com.example.exhibtion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgBvcquls3kx4_cuxITzgz204jyc2XWYY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:717149806136:android:e35132c5cf3aeb4e6190cd",
+        "android_client_info": {
+          "package_name": "com.project.exhibtion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgBvcquls3kx4_cuxITzgz204jyc2XWYY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

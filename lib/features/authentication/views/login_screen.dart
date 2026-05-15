@@ -102,7 +102,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    // TODO: Navigate to Registration Screen
+                    // Update this to push to the register screen!
+                    context.push('/register');
                   },
                   child: const Text('Don\'t have an account? Register here'),
                 )
