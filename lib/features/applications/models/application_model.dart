@@ -2,6 +2,7 @@ class ApplicationModel {
   final String id;
   final String exhibitorId;
   final String exhibitionId;
+  final String exhibitionTitle;
   final List<String> boothIds; // Can select multiple booths
   final String status; // 'pending', 'approved', 'rejected', 'cancelled'
   final String companyName;
@@ -14,6 +15,7 @@ class ApplicationModel {
     required this.id,
     required this.exhibitorId,
     required this.exhibitionId,
+    required this.exhibitionTitle,
     required this.boothIds,
     required this.status,
     required this.companyName,
@@ -27,6 +29,7 @@ class ApplicationModel {
     return {
       'exhibitorId': exhibitorId,
       'exhibitionId': exhibitionId,
+      'exhibitionTitle': exhibitionTitle,
       'boothIds': boothIds,
       'status': status,
       'companyName': companyName,
@@ -42,6 +45,7 @@ class ApplicationModel {
       id: documentId,
       exhibitorId: map['exhibitorId'] ?? '',
       exhibitionId: map['exhibitionId'] ?? '',
+      exhibitionTitle: map['exhibitionTitle'] ?? 'Unknown Exhibition',
       boothIds: List<String>.from(map['boothIds'] ?? []),
       status: map['status'] ?? 'pending',
       companyName: map['companyName'] ?? '',

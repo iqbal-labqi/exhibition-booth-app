@@ -70,7 +70,9 @@ class GuestHomeScreen extends ConsumerWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          // TODO: Navigate to Exhibition Details Screen
+          // Push to the interactive map, passing the specific exhibition ID!
+
+          context.push('/map/${exhibition.id}');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Details coming soon!')),
           );

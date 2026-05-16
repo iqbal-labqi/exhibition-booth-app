@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../authentication/providers/auth_provider.dart';
 import '../models/exhibition_model.dart';
 import '../repositories/exhibition_repository.dart';
 
@@ -49,9 +50,10 @@ class _CreateExhibitionScreenState extends ConsumerState<CreateExhibitionScreen>
       setState(() => _isLoading = true);
 
       try {
+        final user = ref.read(currentUserProvider); // ADD THIS
         final newExhibition = ExhibitionModel(
           id: '', // Firestore auto-generates this
-          organizerId: 'current_user_id', // We will link this to auth later
+          organizerId: user!.uid, // REPLACE 'current_user_id' WITH THIS
           title: _titleController.text.trim(),
           description: _descController.text.trim(),
           startDate: _startDate!,

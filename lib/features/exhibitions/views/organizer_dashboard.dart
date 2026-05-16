@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../authentication/providers/auth_provider.dart';
 import '../providers/exhibition_provider.dart';
 
 // Notice we changed this to a ConsumerWidget so it can read Riverpod!
@@ -17,12 +18,31 @@ class OrganizerDashboard extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Exhibitions'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => context.go('/'), // Temporary logout to Guest Home
-          )
-        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            UserAccountsDrawerHeader(
+              accountName: const Text('Organizer'),
+              accountEmail: const Text('Manage your events'),
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.event, size: 40, color: Colors.orange),
+              ),
+              decoration: BoxDecoration(color: Colors.orange.shade400),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: () async {
+                // Read auth provider to logout properly
+                await ref.read(authControllerProvider.notifier).logout();
+                if (context.mounted) context.go('/');
+              },
+            ),
+          ],
+        ),
       ),
       body: exhibitionsAsyncValue.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -69,10 +89,8 @@ class OrganizerDashboard extends ConsumerWidget {
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    // TODO: Navigate to Organizer Exhibition Details/Edit Screen
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Management screen coming soon!')),
-                    );
+                    // Route to the new management screen!
+                    context.push('/organizer/manage/${exhibition.id}');
                   },
                 ),
               );
