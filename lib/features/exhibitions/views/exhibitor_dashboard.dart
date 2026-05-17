@@ -89,13 +89,24 @@ class ExhibitorDashboard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.indigo.shade100,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            // REPLACED THE OLD CONTAINER WITH THIS IMAGE WIDGET
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Image.network(
+                exhibition.imageUrl.isNotEmpty
+                    ? exhibition.imageUrl
+                    : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1000&auto=format&fit=crop',
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 120,
+                    color: Colors.grey.shade300,
+                    child: const Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                  );
+                },
               ),
-              child: const Center(child: Icon(Icons.map, size: 50, color: Colors.indigo)),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),

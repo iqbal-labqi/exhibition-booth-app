@@ -39,15 +39,30 @@ class AuthController extends Notifier<bool> {
       final repo = ref.read(authRepositoryProvider);
       final cred = await repo.signInWithEmail(email, password);
 
-      // Fetch user role from Firestore
-      final userModel = await repo.getUserData(cred.user!.uid);
+      try {
+        // Fetch user role from Firestore
+        final userModel = await repo.getUserData(cred.user!.uid);
 
-      // Update the user using our custom method
-      ref.read(currentUserProvider.notifier).setUser(userModel);
+        // BOUNCER LOGIC: If the repository returns null because the doc is gone
+        if (userModel == null) {
+          await repo.signOut(); // Kick them out!
+          throw Exception('This account has been deleted by an Administrator.');
+        }
+
+        // Update the user using our custom method
+        ref.read(currentUserProvider.notifier).setUser(userModel);
+
+      } catch (e) {
+        // BOUNCER LOGIC: If getUserData throws an error because the doc is missing
+        await repo.signOut(); // Kick them out!
+        throw Exception('This account has been deleted by an Administrator.');
+      }
 
     } catch (e) {
       state = false;
-      throw Exception('Login failed: $e');
+      // Clean up the error message so the UI doesn't say "Exception: Exception: ..."
+      final errorMsg = e.toString().replaceAll('Exception: ', '');
+      throw Exception(errorMsg);
     }
     state = false;
   }

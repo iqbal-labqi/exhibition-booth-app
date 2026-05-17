@@ -11,6 +11,7 @@ class ApplicationModel {
   final List<String> addOns; // e.g., ['Extra Wifi', 'Furniture']
   final DateTime createdAt;
 
+
   ApplicationModel({
     required this.id,
     required this.exhibitorId,

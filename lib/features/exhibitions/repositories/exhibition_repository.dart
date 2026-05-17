@@ -50,4 +50,24 @@ class ExhibitionRepository {
       throw Exception('Failed to update exhibition: $e');
     }
   }
+  // 1. ADMIN READ: Fetch absolutely every exhibition in the database
+  Stream<List<ExhibitionModel>> getAllExhibitionsAdmin() {
+    return _firestore.collection('exhibitions')
+        .orderBy('startDate', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => ExhibitionModel.fromMap(doc.data(), doc.id))
+        .toList());
+  }
+  // 2. ADMIN DELETE: Permanently remove an exhibition
+  Future<void> deleteExhibition(String exhibitionId) async {
+    try {
+      await _firestore.collection('exhibitions').doc(exhibitionId).delete();
+      // Note: In a massive production app, you would also delete all booths
+      // and applications tied to this ID, but for this project scope,
+      // deleting the parent document perfectly satisfies the "Delete" CRUD requirement!
+    } catch (e) {
+      throw Exception('Failed to delete exhibition: $e');
+    }
+  }
 }

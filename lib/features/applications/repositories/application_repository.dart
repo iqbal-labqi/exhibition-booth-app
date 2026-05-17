@@ -147,5 +147,13 @@ class ApplicationRepository {
       throw Exception('Failed to check booth status: $e');
     }
   }
-
+// --- ADMIN POWER: Fetch absolutely every reservation in the system ---
+  Stream<List<ApplicationModel>> getAllApplicationsAdmin() {
+    return _firestore.collection('applications')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => ApplicationModel.fromMap(doc.data(), doc.id))
+        .toList());
+  }
 }
