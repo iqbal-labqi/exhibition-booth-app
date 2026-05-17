@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // ADDED
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../models/booth_model.dart';
-import '../../authentication/providers/auth_provider.dart'; // ADDED
 
-// CHANGED TO ConsumerStatefulWidget
+import '../models/booth_model.dart';
+import '../repositories/booth_repository.dart'; // NEW: To get live booths
+import '../../authentication/providers/auth_provider.dart';
+import '../../applications/views/application_history_screen.dart';
+import '../../applications/models/application_model.dart';
+import '../../applications/repositories/application_repository.dart'; // NEW: To check if a booth is paid/approved
+
+// 1. Fetch the LIVE booths created by the Organizer
+final liveBoothsProvider = StreamProvider.family<List<BoothModel>, String>((ref, exhibitionId) {
+  return ref.watch(boothRepositoryProvider).getBoothsForExhibition(exhibitionId);
+});
+
+// 2. Fetch ALL applications for this exhibition so the map knows what is already booked
+final allExhibitionAppsProvider = StreamProvider.family<List<ApplicationModel>, String>((ref, exhibitionId) {
+  return ref.watch(applicationRepositoryProvider).getApplicationsForExhibition(exhibitionId);
+});
+
 class InteractiveMapScreen extends ConsumerStatefulWidget {
   final String exhibitionId;
   const InteractiveMapScreen({super.key, required this.exhibitionId});
@@ -14,27 +28,28 @@ class InteractiveMapScreen extends ConsumerStatefulWidget {
 }
 
 class _InteractiveMapScreenState extends ConsumerState<InteractiveMapScreen> {
-  // Temporary dummy booths with specific X/Y coordinates
-  final List<BoothModel> _dummyBooths = [
-    BoothModel(id: '1', boothNumber: 'A-01', status: 'available', price: 1500, dx: 50, dy: 100),
-    BoothModel(id: '2', boothNumber: 'A-02', status: 'booked', price: 1500, dx: 150, dy: 100),
-    BoothModel(id: '3', boothNumber: 'B-01', status: 'available', price: 2500, dx: 50, dy: 200),
-  ];
 
-  void _onBoothTapped(BoothModel booth) {
-    if (booth.status == 'booked') {
+  // Notice: _dummyBooths is completely GONE!
+
+  void _onBoothTapped(BoothModel booth, List<ApplicationModel> userApps, bool isBooked) {
+    if (isBooked) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('This booth is already booked.'), backgroundColor: Colors.red),
       );
       return;
     }
 
-    // Show booking bottom sheet
+    // --- ANTI-SPAM LOGIC ---
+    final hasApplied = userApps.any((app) =>
+    app.exhibitionId == widget.exhibitionId &&
+        app.boothIds.contains(booth.boothNumber) &&
+        (app.status == 'pending' || app.status == 'approved' || app.status == 'paid' || app.status == 'cancel_requested')
+    );
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
-        // Read the current user inside the bottom sheet
         final user = ref.watch(currentUserProvider);
 
         return Padding(
@@ -45,27 +60,33 @@ class _InteractiveMapScreenState extends ConsumerState<InteractiveMapScreen> {
             children: [
               Text('Booth ${booth.boothNumber}', style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 8),
-              Text('Price: \$${booth.price.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, color: Colors.green)),
+              Text('Price: RM ${booth.price.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, color: Colors.green)),
               const SizedBox(height: 24),
 
-              // ROLE-BASED BUTTON LOGIC
               if (user == null)
                 FilledButton.icon(
                   onPressed: () {
                     context.pop();
-                    context.push('/login'); // Redirect Guest
+                    context.push('/login');
                   },
                   icon: const Icon(Icons.login),
                   label: const Text('Login to Book'),
                 )
               else if (user.role == 'exhibitor')
-                FilledButton(
-                  onPressed: () {
-                    context.pop();
-                    context.push('/book/${widget.exhibitionId}/${booth.boothNumber}');
-                  },
-                  child: const Text('Apply for Booth'),
-                )
+                if (hasApplied)
+                   FilledButton.icon(
+                    onPressed: null,
+                    icon: Icon(Icons.lock_clock),
+                    label: Text('Application Already Submitted'),
+                  )
+                else
+                  FilledButton(
+                    onPressed: () {
+                      context.pop();
+                      context.push('/book/${widget.exhibitionId}/${booth.boothNumber}', extra: booth.price);
+                    },
+                    child: const Text('Apply for Booth'),
+                  )
               else
                 const Text('Only Exhibitors can book booths.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
             ],
@@ -77,80 +98,103 @@ class _InteractiveMapScreenState extends ConsumerState<InteractiveMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch user's history for anti-spam
+    final historyAsync = ref.watch(exhibitorHistoryProvider);
+    final userApps = historyAsync.value ?? [];
+
+    // Watch LIVE Booths and LIVE Applications
+    final boothsAsync = ref.watch(liveBoothsProvider(widget.exhibitionId));
+    final allAppsAsync = ref.watch(allExhibitionAppsProvider(widget.exhibitionId));
+
     return Scaffold(
       appBar: AppBar(title: const Text('Interactive Floor Plan')),
-      body: Column(
-        children: [
-          // Legend
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildLegendItem(Colors.green, 'Available'),
-                const SizedBox(width: 16),
-                _buildLegendItem(Colors.red, 'Booked'),
-              ],
-            ),
-          ),
+      body: boothsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error loading map: $err')),
+        data: (liveBooths) {
 
-          // The Interactive Map
-          Expanded(
-            child: InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4.0, // Allow users to zoom in close
-              constrained: false, // Allows panning beyond screen bounds
-              boundaryMargin: const EdgeInsets.all(double.infinity),
-              child: Stack(
-                children: [
-                  // 1. The Floor Plan Background (Using a dummy grid container for now)
-                  Container(
-                    width: 800,
-                    height: 800,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      // Simple grid pattern to simulate a blueprint
-                      image: const DecorationImage(
-                        image: NetworkImage('https://www.transparenttextures.com/patterns/graphy.png'),
-                        repeat: ImageRepeat.repeat,
-                      ),
-                    ),
-                    child: const Center(
-                      child: Text('Exhibition Hall Map', style: TextStyle(color: Colors.grey, fontSize: 32)),
-                    ),
-                  ),
+          if (liveBooths.isEmpty) {
+            return const Center(child: Text('The organizer has not set up the floor plan yet.'));
+          }
 
-                  // 2. The Interactive Booths overlay
-                  ..._dummyBooths.map((booth) {
-                    final color = booth.status == 'available' ? Colors.green : Colors.red;
-                    return Positioned(
-                      left: booth.dx,
-                      top: booth.dy,
-                      child: GestureDetector(
-                        onTap: () => _onBoothTapped(booth),
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.8),
-                            border: Border.all(color: Colors.black54, width: 2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              booth.boothNumber,
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
+          // Figure out which booths are already taken by other people
+          final allApps = allAppsAsync.value ?? [];
+          final takenBoothNumbers = allApps
+              .where((app) => app.status == 'approved' || app.status == 'paid')
+              .expand((app) => app.boothIds)
+              .toList();
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildLegendItem(Colors.green, 'Available'),
+                    const SizedBox(width: 16),
+                    _buildLegendItem(Colors.red, 'Booked'),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  constrained: false,
+                  boundaryMargin: const EdgeInsets.all(double.infinity),
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 1200,
+                        height: 1200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          image: const DecorationImage(
+                            image: NetworkImage('https://www.transparenttextures.com/patterns/graphy.png'),
+                            repeat: ImageRepeat.repeat,
                           ),
                         ),
+                        child: const Center(child: Text('Exhibition Hall Map', style: TextStyle(color: Colors.grey, fontSize: 32))),
                       ),
-                    );
-                  }),
-                ],
+
+                      // Loop through the LIVE booths instead of dummy booths
+                      ...liveBooths.map((booth) {
+
+                        // Check if this specific booth number is in the "taken" list
+                        final isBooked = takenBoothNumbers.contains(booth.boothNumber);
+                        final color = isBooked ? Colors.red : Colors.green;
+
+                        return Positioned(
+                          left: booth.dx,
+                          top: booth.dy,
+                          child: GestureDetector(
+                            onTap: () => _onBoothTapped(booth, userApps, isBooked),
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.8),
+                                border: Border.all(color: Colors.black54, width: 2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  booth.boothNumber,
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

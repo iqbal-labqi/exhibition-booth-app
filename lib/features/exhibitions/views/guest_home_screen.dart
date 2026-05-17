@@ -81,13 +81,26 @@ class GuestHomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Placeholder Image
-            Container(
-              height: 150,
-              decoration: BoxDecoration(
-                color: Colors.blue.shade100,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            // THE NEW IMAGE WIDGET
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Image.network(
+                exhibition.imageUrl.isNotEmpty
+                    ? exhibition.imageUrl
+                // Fallback image if they left the URL blank
+                    : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1000&auto=format&fit=crop',
+                height: 150,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  // If the URL is broken, show a grey box with an error icon
+                  return Container(
+                    height: 150,
+                    color: Colors.grey.shade300,
+                    child: const Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                  );
+                },
               ),
-              child: const Icon(Icons.image, size: 50, color: Colors.blue),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),

@@ -42,4 +42,12 @@ class ExhibitionRepository {
       throw Exception('Failed to create exhibition: $e');
     }
   }
+  // ADD THIS: Update an existing exhibition
+  Future<void> updateExhibition(String exhibitionId, Map<String, dynamic> updatedData) async {
+    try {
+      await _firestore.collection('exhibitions').doc(exhibitionId).update(updatedData);
+    } catch (e) {
+      throw Exception('Failed to update exhibition: $e');
+    }
+  }
 }

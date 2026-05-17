@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/admin/views/admin_dashboard.dart';
+import '../../features/applications/models/application_model.dart' show ApplicationModel;
 import '../../features/authentication/views/login_screen.dart';
+import '../../features/exhibitions/models/exhibition_model.dart' show ExhibitionModel;
 import '../../features/exhibitions/views/exhibitor_dashboard.dart';
 import '../../features/exhibitions/views/guest_home_screen.dart';
 import '../../features/exhibitions/views/organizer_dashboard.dart';
@@ -14,6 +16,9 @@ import '../../features/applications/views/success_screen.dart'; // ADD
 import '../../features/applications/views/application_history_screen.dart'; // ADD
 import '../../features/exhibitions/views/exhibition_management_screen.dart';
 import '../../features/applications/views/payment_screen.dart';
+import '../../features/applications/views/edit_application_screen.dart';
+import '../../features/floor_plan/views/floor_plan_builder_screen.dart';
+import '../../features/exhibitions/views/edit_exhibition_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -55,6 +60,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/organizer/builder/:exhibitionId',
+        builder: (context, state) {
+          return FloorPlanBuilderScreen(
+            exhibitionId: state.pathParameters['exhibitionId']!,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/organizer/edit',
+        builder: (context, state) {
+          final exhibition = state.extra as ExhibitionModel;
+          return EditExhibitionScreen(exhibition: exhibition);
+        },
+      ),
+      GoRoute(
         path: '/admin',
         builder: (context, state) => const AdminDashboard(),
       ),
@@ -88,6 +108,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           return PaymentScreen(
             applicationId: state.pathParameters['applicationId']!,
           );
+        },
+      ),
+      GoRoute(
+        path: '/edit',
+        builder: (context, state) {
+          final app = state.extra as ApplicationModel;
+          return EditApplicationScreen(application: app);
         },
       ),
     ],

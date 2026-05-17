@@ -6,7 +6,7 @@ class ExhibitionModel {
   final DateTime startDate;
   final DateTime endDate;
   final bool isPublished; // Controls visibility to guests/exhibitors
-  final String? floorPlanImageUrl;
+  final String imageUrl;
 
   ExhibitionModel({
     required this.id,
@@ -16,7 +16,7 @@ class ExhibitionModel {
     required this.startDate,
     required this.endDate,
     this.isPublished = false,
-    this.floorPlanImageUrl,
+    required this.imageUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,7 +27,7 @@ class ExhibitionModel {
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
       'isPublished': isPublished,
-      'floorPlanImageUrl': floorPlanImageUrl,
+      'imageUrl': imageUrl,
     };
   }
 
@@ -40,7 +40,7 @@ class ExhibitionModel {
       startDate: DateTime.parse(map['startDate']),
       endDate: DateTime.parse(map['endDate']),
       isPublished: map['isPublished'] ?? false,
-      floorPlanImageUrl: map['floorPlanImageUrl'],
+      imageUrl: map['imageUrl'] ?? 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1000&auto=format&fit=crop',
     );
   }
 }

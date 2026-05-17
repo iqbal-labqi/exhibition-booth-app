@@ -87,7 +87,18 @@ class OrganizerDashboard extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  // UPDATE THE TRAILING PROPERTY:
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blueAccent),
+                        tooltip: 'Edit Exhibition Details',
+                        onPressed: () => context.push('/organizer/edit', extra: exhibition),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                    ],
+                  ),
                   onTap: () {
                     // Route to the new management screen!
                     context.push('/organizer/manage/${exhibition.id}');

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart' show GoRouterHelper;
 import '../../applications/models/application_model.dart';
 import '../../applications/repositories/application_repository.dart';
 
@@ -17,7 +18,16 @@ class ExhibitionManagementScreen extends ConsumerWidget {
     final applicationsAsync = ref.watch(exhibitionApplicationsProvider(exhibitionId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage Applications')),
+      appBar: AppBar(
+          title: const Text('Manage Applications'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.map),
+            tooltip: 'Edit Floor Plan',
+            onPressed: () => context.push('/organizer/builder/$exhibitionId'),
+          )
+        ],
+      ),
       body: applicationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),

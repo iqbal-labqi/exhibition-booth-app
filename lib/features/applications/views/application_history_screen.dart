@@ -84,10 +84,21 @@ class ApplicationHistoryScreen extends ConsumerWidget {
   }
   Widget _buildTrailingAction(BuildContext context, WidgetRef ref, ApplicationModel app) {
     if (app.status == 'pending') {
-      return IconButton(
-        icon: const Icon(Icons.cancel, color: Colors.red),
-        tooltip: 'Cancel Application',
-        onPressed: () => _confirmCancel(context, ref, app), // Make sure it passes 'app'
+      // UPDATE THIS BLOCK: Show Edit and Cancel side-by-side
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.blue),
+            tooltip: 'Edit Application',
+            onPressed: () => context.push('/edit', extra: app), // Route to edit screen
+          ),
+          IconButton(
+            icon: const Icon(Icons.cancel, color: Colors.red),
+            tooltip: 'Cancel Application',
+            onPressed: () => _confirmCancel(context, ref, app),
+          ),
+        ],
       );
     } else if (app.status == 'approved') {
       // FIX: SHOW BOTH PAY AND CANCEL BUTTONS

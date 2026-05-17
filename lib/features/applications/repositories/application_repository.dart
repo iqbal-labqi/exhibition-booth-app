@@ -125,5 +125,27 @@ class ApplicationRepository {
       throw Exception('Payment failed: $e');
     }
   }
+  // ADD THIS: Updates an existing pending application
+  Future<void> updateApplicationDetails(String applicationId, Map<String, dynamic> updatedData) async {
+    try {
+      await _firestore.collection('applications').doc(applicationId).update(updatedData);
+    } catch (e) {
+      throw Exception('Failed to update application: $e');
+    }
+  }
+  Future<bool> hasActiveApplicationsForBooth(String exhibitionId, String boothNumber) async {
+    try {
+      final snapshot = await _firestore.collection('applications')
+          .where('exhibitionId', isEqualTo: exhibitionId)
+          .where('boothIds', arrayContains: boothNumber)
+          .where('status', whereIn: ['pending', 'approved', 'paid', 'cancel_requested'])
+          .limit(1) // We only need to find ONE to know it's not safe to delete!
+          .get();
+
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      throw Exception('Failed to check booth status: $e');
+    }
+  }
 
 }
