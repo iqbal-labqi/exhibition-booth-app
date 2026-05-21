@@ -109,8 +109,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/pay/:applicationId',
         builder: (context, state) {
+          // Catch the amount! (Default to 1500 if something goes wrong)
+          final payAmount = state.extra as double? ?? 1500.0;
+
           return PaymentScreen(
             applicationId: state.pathParameters['applicationId']!,
+            amount: payAmount, // <-- Pass it into the screen!
           );
         },
       ),

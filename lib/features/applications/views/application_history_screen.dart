@@ -113,7 +113,7 @@ class ApplicationHistoryScreen extends ConsumerWidget {
           const SizedBox(width: 8),
           FilledButton.icon(
             // CHANGE THIS LINE:
-            onPressed: () => context.push('/pay/${app.id}'),
+            onPressed: () => context.push('/pay/${app.id}', extra: app.amount),
             icon: const Icon(Icons.payment, size: 16),
             label: const Text('Pay Now'),
             style: FilledButton.styleFrom(backgroundColor: Colors.green),

@@ -5,7 +5,13 @@ import '../repositories/application_repository.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final String applicationId;
-  const PaymentScreen({super.key, required this.applicationId});
+  final double amount; // <--- 1. ADD THIS
+
+  const PaymentScreen({
+    super.key,
+    required this.applicationId,
+    required this.amount, // <--- 2. ADD THIS
+  });
 
   @override
   ConsumerState<PaymentScreen> createState() => _PaymentScreenState();
@@ -54,10 +60,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             const Icon(Icons.credit_card, size: 80, color: Colors.blueAccent),
             const SizedBox(height: 24),
             // Mock price for demonstration
-            const Text(
-                'Total Amount: RM 1,500.00',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center
+            Center(
+              child: Text(
+                'RM ${widget.amount.toStringAsFixed(2)}',
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
             ),
             const SizedBox(height: 32),
 

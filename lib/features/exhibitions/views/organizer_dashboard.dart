@@ -40,6 +40,7 @@ class OrganizerDashboard extends ConsumerWidget {
         title: const Text('My Exhibitions', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       // CLEAN, FOCUSED SIDEBAR
+      // --- NEW: THE SIDEBAR (DRAWER) ---
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -53,26 +54,39 @@ class OrganizerDashboard extends ConsumerWidget {
               ),
               decoration: BoxDecoration(color: Colors.orange.shade400),
             ),
+
             ListTile(
-              leading: const Icon(Icons.add_circle_outline, color: Colors.orange),
-              title: const Text('Create New Exhibition'),
+              leading: const Icon(Icons.dashboard, color: Colors.orange),
+              title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
+              onTap: () => Navigator.pop(context), // Just closes the sidebar since we are here!
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_alt, color: Colors.blue),
+              title: const Text('Manage Applications'),
               onTap: () {
-                Navigator.pop(context);
-                context.push('/organizer/create');
+                Navigator.pop(context); // Close the sidebar
+                // Politely tell them to pick an exhibition first!
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please select "Manage Applications" on a specific exhibition card to view its applicants.'),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
               },
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
-              onTap: () async {
-                await ref.read(authControllerProvider.notifier).logout();
-                if (context.mounted) context.go('/');
+              title: const Text('Log Out', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              onTap: () {
+                // Perform the Riverpod Sign Out
+                ref.read(authControllerProvider.notifier).logout();
               },
             ),
           ],
         ),
       ),
+
       body: Column(
         children: [
           // --- THE FILTER ROW ---
