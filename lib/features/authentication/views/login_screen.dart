@@ -67,7 +67,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.event_seat, size: 80, color: Colors.blueAccent),
+                const Icon(Icons.email, size: 80, color: Colors.blueAccent),
                 const SizedBox(height: 32),
                 TextFormField(
                   controller: _emailController,
@@ -105,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // Update this to push to the register screen!
                     context.push('/register');
                   },
-                  child: const Text('Don\'t have an account? Register here'),
+                  child: const Text('Not a member? Register here'),
                 )
               ],
             ),

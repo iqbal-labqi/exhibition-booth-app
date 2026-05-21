@@ -143,7 +143,8 @@ class AdminReservationsScreen extends ConsumerWidget {
                       const Divider(),
                       Text('Exhibition: ${app.exhibitionTitle}'),
                       Text('Booth(s): ${app.boothIds.join(', ')}'),
-                      Text('Amount: RM 1500.00'), // Hardcoded temporarily sbb code rosak aku x jumpe solution, "if it works, it works" they say
+                      // THE FIX: Read the actual amount from Firebase!
+                      Text('Amount: RM ${app.amount.toStringAsFixed(2)}'),
                       Text('Date: ${dateFormat.format(app.createdAt)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                       const SizedBox(height: 8),
                       Align(

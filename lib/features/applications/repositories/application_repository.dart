@@ -156,4 +156,35 @@ class ApplicationRepository {
         .map((doc) => ApplicationModel.fromMap(doc.data(), doc.id))
         .toList());
   }
+  // --- STRICT GUARD: Check if a booth is already claimed ---
+  // Notice we added "boothNumber" to the required variables here!
+  Future<bool> isBoothBookedOrPending(String exhibitionId, String boothId, String boothNumber) async {
+    try {
+      final snapshot = await _firestore
+          .collection('applications')
+          .where('exhibitionId', isEqualTo: exhibitionId)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final List<dynamic> bookedBooths = data['boothIds'] ?? [];
+        final String status = data['status'] ?? '';
+
+        // THE FIX: Check if the application contains the ID *OR* the Name!
+        final containsBooth = bookedBooths.contains(boothId) || bookedBooths.contains(boothNumber);
+
+        final isActive = (status == 'pending' || status == 'approved' || status == 'paid');
+
+        if (containsBooth && isActive) {
+          return true; // IT IS LOCKED!
+        }
+      }
+      return false; // Safe!
+
+    } catch (e) {
+      print('Guard Error: $e');
+      // THE FIX: If there is a database error, we return TRUE to lock the booth just to be safe!
+      return true;
+    }
+  }
 }

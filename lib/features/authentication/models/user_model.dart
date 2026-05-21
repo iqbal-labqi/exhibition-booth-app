@@ -4,6 +4,7 @@ class UserModel {
   final String name;
   final String role; // 'guest', 'exhibitor', 'organizer', 'admin'
   final String? companyName; // Only for exhibitors/organizers
+  final bool isSuspended;
 
   UserModel({
     required this.uid,
@@ -11,6 +12,7 @@ class UserModel {
     required this.name,
     required this.role,
     this.companyName,
+    this.isSuspended = false, // Defaults to false for new users!
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +22,7 @@ class UserModel {
       'name': name,
       'role': role,
       'companyName': companyName,
+      'isSuspended': isSuspended, // Saves to Firebase
     };
   }
 
@@ -30,6 +33,7 @@ class UserModel {
       name: map['name'] ?? '',
       role: map['role'] ?? 'guest',
       companyName: map['companyName'],
+      isSuspended: map['isSuspended'] ?? false, // Reads from Firebase
     );
   }
 }

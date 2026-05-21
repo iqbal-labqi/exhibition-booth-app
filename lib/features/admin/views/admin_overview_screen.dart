@@ -80,7 +80,7 @@ class AdminOverviewScreen extends ConsumerWidget {
                 for (var app in reservations) {
                   // Only count money that is paid or approved!
                   if (app.status == 'paid' || app.status == 'approved') {
-                    revenue += 1500.0; // <--- Hardcoded for now!
+                    revenue += app.amount; // THE FIX: Add the real amount!
                   }
                 }
                 return Container(

@@ -88,9 +88,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/book/:exhibitionId/:boothId',
         builder: (context, state) {
+          // THE FIX: Catch the baton! (Default to 1500 just in case)
+          final boothPrice = state.extra as double? ?? 1500.0;
+
           return BookingFormScreen(
             exhibitionId: state.pathParameters['exhibitionId']!,
             boothId: state.pathParameters['boothId']!,
+            price: boothPrice, // Pass the baton to the form!
           );
         },
       ),

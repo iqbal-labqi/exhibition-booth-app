@@ -12,13 +12,22 @@ class AdminRepository {
     return _firestore.collection('users').snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data();
-        data['uid'] = doc.id; // Inject the document ID so we know exactly who to delete
+        data['uid'] = doc.id; // Inject the document ID so we know exactly who to update
         return data;
       }).toList();
     });
   }
 
-  // 2. Delete a user document
+  // 2. NEW: Update a user's Name, Role, or Suspend Status
+  Future<void> updateUser(String uid, Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection('users').doc(uid).update(data);
+    } catch (e) {
+      throw Exception('Failed to update user: $e');
+    }
+  }
+
+  // 3. We keep the hard delete just in case you ever need it in the backend!
   Future<void> deleteUser(String uid) async {
     try {
       await _firestore.collection('users').doc(uid).delete();
