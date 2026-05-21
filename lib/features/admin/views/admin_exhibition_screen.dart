@@ -301,6 +301,12 @@ class AdminExhibitionScreen extends ConsumerWidget {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/organizer/create'), // Reuses the Organizer form!
+        backgroundColor: Colors.deepPurple,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('New Exhibition', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
     );
   }
 }
