@@ -41,16 +41,21 @@ class _BookingFormScreenState extends ConsumerState<BookingFormScreen> {
     super.dispose();
   }
 
-  Future<void> _submitApplication() async {
+  void _submitApplication() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      try {
-        final user = ref.read(currentUserProvider);
-        if (user == null) throw Exception('User not logged in');
 
-        // ADD THESE TWO LINES to fetch the exhibition title
-        final exDoc = await FirebaseFirestore.instance.collection('exhibitions').doc(widget.exhibitionId).get();
-        final exTitle = exDoc.data()?['title'] ?? 'Unknown Exhibition';
+      try {
+        // --- NEW: FETCH THE REAL TITLE FROM FIREBASE BEFORE SAVING ---
+        final exhibitionDoc = await FirebaseFirestore.instance
+            .collection('exhibitions')
+            .doc(widget.exhibitionId)
+            .get();
+
+        final realTitle = exhibitionDoc.data()?['title'] ?? 'Unknown Exhibition';
+        // -------------------------------------------------------------
+
+        final user = ref.read(currentUserProvider);
 
         // Create the application object
         final application = ApplicationModel(
@@ -58,7 +63,7 @@ class _BookingFormScreenState extends ConsumerState<BookingFormScreen> {
           exhibitorId: user!.uid,
           exhibitorName: user.name ?? 'Exhibitor',
           exhibitionId: widget.exhibitionId,
-          exhibitionTitle: 'Exhibition',
+          exhibitionTitle: realTitle, // <--- THE FIX IS HERE!
           boothIds: [widget.boothId],
           companyName: _companyNameController.text.trim(),
           companyDesc: _companyDescController.text.trim(),
@@ -72,18 +77,14 @@ class _BookingFormScreenState extends ConsumerState<BookingFormScreen> {
         await ref.read(applicationRepositoryProvider).submitApplication(application);
 
         if (mounted) {
-          // Temporarily routing back to map. We will route to Wireframe 10 (Success) next!
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Application Submitted!'), backgroundColor: Colors.green),
-          );
           context.go('/success');
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
       } finally {
-        setState(() => _isLoading = false);
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
